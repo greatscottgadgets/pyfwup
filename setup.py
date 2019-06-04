@@ -11,7 +11,7 @@ setup(
         ],
     },
     author='Katherine J. Temkin',
-    author_email='',
+    author_email='k@ktemkin.com',
     tests_require=[''],
     install_requires=['pyusb', 'tqdm'],
     description='Python library for programming various USB bootloaders',

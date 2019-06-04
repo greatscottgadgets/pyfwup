@@ -261,7 +261,10 @@ class MicronucleusBoard(object):
 
     def _patch_first_page(self, page_data):
         """ Patches a jump-to-bootloader into the first page of the user program. """
-        self._patch_in_jump(page_data, 0, self.bootloader_start)
+
+
+        if self.protocol == 2:
+            self._patch_in_jump(page_data, 0, self.bootloader_start)
 
 
     def _patch_last_page(self, page_data, reset_address):

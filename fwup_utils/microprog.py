@@ -34,17 +34,18 @@ def main():
     parser.add_argument('--no-run', action='store_true', dest='skip_run', help='Set to avoid running the program after upload.')
     parser.add_argument('--run-only', action='store_true', dest='run_only', help='If provided, runs the user application without uploading anything.')
     parser.add_argument('--erase-only', '-E', action='store_true', dest='erase_only', help='Erases the microcontroller without re-uploading a new program.')
+    parser.add_argument('--info', '-I', action='store_true', dest='info_only', help="Reads only the board's identification information, and then exits.")
 
     args = parser.parse_args()
-    run_programming = not args.erase_only and not args.run_only
+    run_programming = not args.erase_only and not args.run_only and not args.info_only
 
     # If our arguments are invalid, abort.
-    if not (args.filename or args.erase_only or args.run_only):
+    if not (args.filename or args.erase_only or args.run_only or args.info_only):
         parser.print_help()
         sys.exit(-1)
 
     # Handle various verbosity settings.
-    log_verbose = log_stderr if args.verbose else log_null
+    log_verbose = log_stderr if (args.verbose or args.info_only) else log_null
     log_status  = log_null if args.quiet else log_stderr
 
     # Read the binary data for the relevant file into memory.
@@ -62,12 +63,16 @@ def main():
     # Print out information about the board, assuming we were able to find one.
     log_status("")
     log_status("Board found!")
+    log_verbose("    Micronucleus protocol supported: v{}".format(board.protocol))
     log_verbose("    Processor: {}".format(board.get_cpu_name()))
     log_verbose("    Maximum program size: {} B".format(board.flash_size))
     log_verbose("    Page size: {} B".format(board.page_size))
     log_verbose("    Page count: {}".format(board.page_count))
     log_verbose("    Sleep time between writes: {} ms".format(board.write_duration_ms))
     log_verbose("")
+
+    if args.info_only:
+        sys.exit(0)
 
 
     # Finally, program the relevant board...

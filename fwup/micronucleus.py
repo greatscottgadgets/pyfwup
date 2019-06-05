@@ -386,7 +386,7 @@ class MicronucleusBoard(object):
         """ Returns a short description of the relevant board's main processor. """
 
         if self.protocol == 1:
-            return "unavailable"
+            return "cannot be detected (using the v1 protocol)"
         elif self.signature in self.AVR_NAMES:
             return self.AVR_NAMES[self.signature]
         else:

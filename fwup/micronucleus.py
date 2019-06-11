@@ -72,7 +72,7 @@ class MicronucleusBoard(object):
         self._populate_info_from_device()
 
 
-    def _try_connect(self, wait=True):
+    def _try_connect(self, wait=True, post_connect_delay=0.5):
         """ Attempts to connect to a given micronucleus device. Useful for both connecting and reconnecting."""
 
         self.device = None
@@ -86,6 +86,10 @@ class MicronucleusBoard(object):
             #	If this device
             if self._validate_device_compatibility(candidate):
                 self.device = candidate
+
+        # For systems like Linux, we'll need a small post-connect delay to allow udev to catch up
+        # if the device was just plugged in. Otherwise, the device may still have its initial perms.
+        time.sleep(post_connect_delay)
 
         # If we couldn't find a board (i.e. if wait wasn't set), error out.
         if self.device is None:

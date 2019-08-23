@@ -1,15 +1,21 @@
 #!/usr/bin/env python
 #
-# Micronucleus programmer (in python!)
+# Multi-firmware programming binary.
 #
 
 from __future__ import print_function
 
+import os
 import sys
 import argparse
 
 from tqdm import tqdm
 
+from fwup.core import FwupTarget
+from fwup.errors import BoardNotFoundError
+
+from fwup.dfu import DFUTarget
+from fwup.lpc43xx import LPC43xxTarget
 from fwup.micronucleus import MicronucleusBoard
 
 
@@ -22,12 +28,19 @@ def log_null(string):
     pass
 
 def main():
-    """
-    Simple programmer for Micronucleus bootloaders -- but in python for easy distribution.
-    """
+    """ Simple programmer for pyfwup supported boards. """
+
+    # Try to identify the type of board for the given utility based on the name it was called by.
+    # This allows derivative programmers (e.g. microprog) to have unique binary names that implicitly
+    # specify their target type.
+    utility_name = os.path.basename(sys.argv[0])
+    target_type = FwupTarget.from_utility_name(utility_name)
+
+    # Figure out the name for our board type based on the binary name.
+    target_name = target_type.FWUP_TARGET_NAME if target_type else "pyfwup"
 
     # Generate a simple argument parser.
-    parser = argparse.ArgumentParser(description="Simple, python-based programmer for micronucleus boards.")
+    parser = argparse.ArgumentParser(description="Simple, python-based programmer for {} boards.".format(target_name))
     parser.add_argument('filename', metavar='bin_file', help='The file to be programmed.', nargs='?')
     parser.add_argument('--verbose', '-v', action='store_true', help='Provide to generate more detailed console output.')
     parser.add_argument('--quiet', '-q', action='store_true', help='Provide to disable console output during normal operation.')
@@ -36,49 +49,63 @@ def main():
     parser.add_argument('--erase-only', '-E', action='store_true', dest='erase_only', help='Erases the microcontroller without re-uploading a new program.')
     parser.add_argument('--info', '-I', action='store_true', dest='info_only', help="Reads only the board's identification information, and then exits.")
 
+    if target_type is None:
+        parser.add_argument('--target', '-t', help="The type of target to be programmed.", required=True)
+
     args = parser.parse_args()
     run_programming = not args.erase_only and not args.run_only and not args.info_only
+
+    # If we don't have a target name, search for one.:
+    if target_type is None:
+        try:
+            target_type = FwupTarget.from_target_name(args.target)
+        except AttributeError:
+            pass
 
     # If our arguments are invalid, abort.
     if not (args.filename or args.erase_only or args.run_only or args.info_only):
         parser.print_help()
         sys.exit(-1)
 
+    # If we couldn't figure out a target type, abort.
+    if not target_type:
+        log_stderr("Couldn't figure out which type of target to program. Did you supply a valid --target?")
+        sys.exit(-2)
+
     # Handle various verbosity settings.
     log_verbose = log_stderr if (args.verbose or args.info_only) else log_null
     log_status  = log_null if args.quiet else log_stderr
+
+    # Update the target name, in case we just searched for one.
+    target_name = target_type.FWUP_TARGET_NAME
 
     # Read the binary data for the relevant file into memory.
     if run_programming:
         with open(args.filename, 'rb') as f:
             program_data = f.read()
 
-    # Ask the user to put the device into bootloader mode.
-    log_status("Plug the target board in now.")
-    log_status("If the board is already plugged in, you may need to unplug and replug it before it will be found.")
+    # Figure out which to create based on the binary name.
+    try:
+        board = target_type()
+    except BoardNotFoundError:
+        log_stderr("Could not find a {} board!".format(target_name))
+        sys.exit(-3)
 
-    # Attempt to connect to the relevant board.
-    board = MicronucleusBoard()
 
-    # Print out information about the board, assuming we were able to find one.
+    # Print information about the connected board.
     log_status("")
-    log_status("Board found!")
-    log_verbose("    Micronucleus protocol supported: v{}".format(board.protocol))
-    log_verbose("    Processor: {}".format(board.get_cpu_name()))
-    log_verbose("    Maximum program size: {} B".format(board.flash_size))
-    log_verbose("    Page size: {} B".format(board.page_size))
-    log_verbose("    Page count: {}".format(board.page_count))
-    log_verbose("    Sleep time between writes: {} ms".format(board.write_duration_ms))
-    log_verbose("")
+    log_status("Target found!")
+    board.print_target_info(log_verbose)
 
     if args.info_only:
         sys.exit(0)
 
-
     # Finally, program the relevant board...
     if run_programming:
+        size_to_program = board.size_to_program(program_data)
+
         log_status("Programming {} bytes...".format(len(program_data)))
-        with tqdm(total=board.flash_size, ncols=80, unit='B', leave=False, disable=args.quiet) as progress:
+        with tqdm(total=size_to_program, ncols=80, unit='B', leave=False, disable=args.quiet) as progress:
             board.program(program_data, status_callback = lambda written, _ : progress.update(written))
         log_status("Programming complete!")
 

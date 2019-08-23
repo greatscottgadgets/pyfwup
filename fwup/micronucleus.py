@@ -6,6 +6,7 @@ import struct
 import usb
 import usb.core
 
+from .core import FwupTarget
 from .errors import BoardNotFoundError, ProgrammingFailureError
 
 MICRONUCLEUS_VID     = 0x16d0
@@ -13,8 +14,13 @@ MICRONUCLEUS_PID     = 0x0753
 MICRONUCLEUS_TIMEOUT = 1000
 
 
-class MicronucleusBoard(object):
+class MicronucleusBoard(FwupTarget):
     """ Class that allows one to program a Micronucleus bootloader target. """
+
+    # Constants for fwup-util.
+    FWUP_UTILITY_NAME = 'microprog'
+    FWUP_TARGET_NAME = 'micronucleus'
+
 
     #
     # USB protocol data.
@@ -57,6 +63,14 @@ class MicronucleusBoard(object):
         0x930c: "ATtiny84",
         0x930b: "ATtiny85",
     }
+
+
+    @staticmethod
+    def _print_preconnect_info(print_function):
+        print_function("Plug the target board in now.")
+        print_function("If the board is already plugged in, you may need to unplug and replug it before it will be found.")
+
+
 
     def __init__(self, vid=MICRONUCLEUS_VID, pid=MICRONUCLEUS_PID, wait=True, fast_mode=False):
         """ Creates a new connection to a given micronucleus bootloader. """
@@ -178,6 +192,18 @@ class MicronucleusBoard(object):
         self.bootloader_start = self.page_count * self.page_size
 
 
+    def _print_target_info(self, print_function):
+        """ Prints information about the relevant board, if possible."""
+
+        print_function("    Micronucleus protocol supported: v{}".format(self.protocol))
+        print_function("    Processor: {}".format(self.get_cpu_name()))
+        print_function("    Maximum program size: {} B".format(self.flash_size))
+        print_function("    Page size: {} B".format(self.page_size))
+        print_function("    Page count: {}".format(self.page_count))
+        print_function("    Sleep time between writes: {} ms".format(self.write_duration_ms))
+        print_function("")
+
+
     def erase(self):
         """ Erases the board's program flash. """
 
@@ -199,6 +225,11 @@ class MicronucleusBoard(object):
                 self.reconnect()
             except BoardNotFoundError:
                 raise ProgrammingFailureError()
+
+
+    def size_to_program(self, program_data):
+        # We always program the entire flash, no matter the program size.
+        return self.flash_size
 
 
     def program(self, program_data, status_callback=None):

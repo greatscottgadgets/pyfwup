@@ -2,12 +2,14 @@ from setuptools import setup, find_packages
 
 setup(
     name='pyfwup',
-    version='0.1.3',
+    version='0.2',
     url='https://github.com/usb-tools/pyfwupd',
     license='BSD',
     entry_points={
         'console_scripts': [
-            'microprog = fwup_utils.microprog:main',
+            'microprog  = fwup_utils.fwup_util:main',
+            'lpc-upload = fwup_utils.fwup_util:main',
+            'fwup-util  = fwup_utils.fwup_util:main',
         ],
     },
     author='Katherine J. Temkin',

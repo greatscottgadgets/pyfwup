@@ -24,7 +24,7 @@ class DFUError(IOError):
 
     def __init__(self, code):
         # FIXME: covert the DFU error code to an error name
-        super().__init__("DFU error: {}".format(code))
+        super(DFUError, self).__init__("DFU error: {}".format(code))
 
 
 
@@ -124,13 +124,17 @@ class DFUTarget(FwupTarget):
 
 
 
-    def __init__(self, *args, index=0, **kwargs):
+    def __init__(self, *args, **kwargs):
         """ Creates a new class representing a DFU target.
 
         Accepts the same specifier arguments as pyusb's usb.core.find(); plus an index argument that gets
         the Nth available device.
 
         """
+
+        # Default keyword argument support for py2.
+        if 'index' not in kwargs:
+            index = 0
 
         # Find a DFU device to work with.
         devices = list(self.find_dfu_devices())

@@ -2,6 +2,8 @@
 Core definitions for pyfwup.
 """
 
+from __future__ import print_function
+
 
 class FwupTarget(object):
     """

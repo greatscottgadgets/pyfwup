@@ -84,13 +84,15 @@ def main():
         with open(args.filename, 'rb') as f:
             program_data = f.read()
 
+    # Print preconnect info, if we have any.
+    target_type.print_preconnect_info(log_status)
+
     # Figure out which to create based on the binary name.
     try:
         board = target_type()
     except BoardNotFoundError:
         log_stderr("Could not find a {} board!".format(target_name))
         sys.exit(-3)
-
 
     # Print information about the connected board.
     log_status("")

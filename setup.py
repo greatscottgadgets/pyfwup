@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pyfwup',
-    version='0.2.1',
+    version='0.3.0',
     url='https://github.com/usb-tools/pyfwupd',
     license='BSD',
     entry_points={
@@ -10,6 +10,7 @@ setup(
             'microprog  = fwup_utils.fwup_util:main',
             'lpc-upload = fwup_utils.fwup_util:main',
             'fwup-util  = fwup_utils.fwup_util:main',
+            'fx3load    = fwup_utils.fwup_util:main'
         ],
     },
     author='Katherine J. Temkin',

@@ -14,10 +14,11 @@ from tqdm import tqdm
 from fwup.core import FwupTarget
 from fwup.errors import BoardNotFoundError
 
+# TODO: automatically detect these?
 from fwup.dfu import DFUTarget
 from fwup.lpc43xx import LPC43xxTarget
 from fwup.micronucleus import MicronucleusBoard
-
+from fwup.fx3 import FX3Target
 
 def log_stderr(string):
     """ Helper to log to stderr. """

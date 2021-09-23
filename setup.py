@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='pyfwup',
     version='0.3.0',
-    url='https://github.com/usb-tools/pyfwupd',
+    url='https://github.com/usb-tools/pyfwup',
     license='BSD',
     entry_points={
         'console_scripts': [

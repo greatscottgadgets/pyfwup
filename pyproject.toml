@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyfwup"
+version = "0.4.0"
+description = "Python library for programming various USB bootloaders"
+authors = [
+    {name = "Great Scott Gadgets", email = "dev@greatscottgadgets.com"},
+]
+dependencies = ["pyusb", "tqdm"]
+requires-python = ">=3.8"
+readme = "README.md"
+license = {text = "BSD"}
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Environment :: Console",
+    "Environment :: Plugins",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Security",
+]
+
+[project.urls]
+Homepage = "https://github.com/greatscottgadgets/pyfwup"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["fwup", "fwup_utils"]
+
+[project.scripts]
+fwup-util = "fwup_utils.fwup_util:main"

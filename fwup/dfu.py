@@ -124,7 +124,7 @@ class DFUTarget(FwupTarget):
 
 
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, index=0, *args, **kwargs):
         """ Creates a new class representing a DFU target.
 
         Accepts the same specifier arguments as pyusb's usb.core.find(); plus an index argument that gets
@@ -132,12 +132,8 @@ class DFUTarget(FwupTarget):
 
         """
 
-        # Default keyword argument support for py2.
-        if 'index' not in kwargs:
-            index = 0
-
         # Find a DFU device to work with.
-        devices = list(self.find_dfu_devices())
+        devices = list(self.find_dfu_devices(*args, **kwargs))
         try:
             self.device = devices[index]
         except:
@@ -261,7 +257,7 @@ class DFUTarget(FwupTarget):
         for page_address in range(0, len(program_data), self.transfer_size):
 
             # Extract the page to be programmed...
-            data_to_program = bytearray(program_data[page_address : page_address + self.transfer_size])
+            data_to_program = program_data[page_address : page_address + self.transfer_size]
 
             # ... and download it to the device.
             self.__raw_write_page(page_address, data_to_program)

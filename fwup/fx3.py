@@ -36,8 +36,11 @@ class FX3Target(FwupTarget):
     VENDOR_REQUEST_UPLOAD = 0xa0
 
 
-    def __init__(self, vid=TARGET_VID, pid=TARGET_PID, wait=True, fast_mode=False):
+    def __init__(self, wait=True, fast_mode=False, *args, **kwargs):
         """ Creates a new connection to a given micronucleus bootloader. """
+
+        vid = kwargs.get('idVendor', default=TARGET_VID)
+        pid = kwargs.get('idProduct', default=TARGET_PID)
 
         # Try to find an FX3 device in bootloader mode.
         self.device = usb.core.find(idVendor=vid, idProduct=pid)

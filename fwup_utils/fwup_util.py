@@ -49,9 +49,10 @@ def main():
     parser.add_argument('--run-only', action='store_true', dest='run_only', help='If provided, runs the user application without uploading anything.')
     parser.add_argument('--erase-only', '-E', action='store_true', dest='erase_only', help='Erases the microcontroller without re-uploading a new program.')
     parser.add_argument('--info', '-I', action='store_true', dest='info_only', help="Reads only the board's identification information, and then exits.")
+    parser.add_argument('--device', '-d', metavar='<vid>:<pid>', dest='device', help='Specify Vendor/Product ID of target device.')
 
     if target_type is None:
-        parser.add_argument('--target', '-t', help="The type of target to be programmed.", required=True)
+        parser.add_argument('--target', '-t', help="The type of target to be programmed.", default="dfu")
 
     args = parser.parse_args()
     run_programming = not args.erase_only and not args.run_only and not args.info_only
@@ -88,9 +89,20 @@ def main():
     # Print preconnect info, if we have any.
     target_type.print_preconnect_info(log_status)
 
+    # Extract VID/PID from the device argument
+    device = {}
+    if args.device:
+        try:
+            vid, pid = args.device.split(':')
+            device['idVendor']  = int(vid, 16)
+            device['idProduct'] = int(pid, 16)
+        except ValueError:
+            log_stderr("Cannot parse the device argument. Please supply a valid vid:pid pair.")
+            sys.exit(-4)
+
     # Figure out which to create based on the binary name.
     try:
-        board = target_type()
+        board = target_type(**device)
     except BoardNotFoundError:
         log_stderr("Could not find a {} board!".format(target_name))
         sys.exit(-3)

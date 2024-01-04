@@ -99,7 +99,7 @@ class DFUTarget(FwupTarget):
                 # If this matches both our class and subclass, it's a DFU device.
                 # Return its interface number.
                 if matches_class and matches_subclass:
-                        return configuration.bConfigurationValue, interface.bInterfaceNumber
+                    return configuration.bConfigurationValue, interface.bInterfaceNumber
 
         return None, None
 
@@ -124,7 +124,7 @@ class DFUTarget(FwupTarget):
 
 
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, index=0, *args, **kwargs):
         """ Creates a new class representing a DFU target.
 
         Accepts the same specifier arguments as pyusb's usb.core.find(); plus an index argument that gets
@@ -132,12 +132,8 @@ class DFUTarget(FwupTarget):
 
         """
 
-        # Default keyword argument support for py2.
-        if 'index' not in kwargs:
-            index = 0
-
         # Find a DFU device to work with.
-        devices = list(self.find_dfu_devices())
+        devices = list(self.find_dfu_devices(*args, **kwargs))
         try:
             self.device = devices[index]
         except:
@@ -158,10 +154,20 @@ class DFUTarget(FwupTarget):
 
 
     def __read_device_info(self):
+        """ Retrieve information from the DFU-capable device. """
+        for configuration in self.device:
+            intf = usb.util.find_descriptor(configuration, bInterfaceClass=self.DFU_DEVICE_CLASS,
+                                            bInterfaceSubClass=self.DFU_DEVICE_SUBCLASS)
+            self.__parse_dfu_descriptor(intf.extra_descriptors)
 
-        # FIXME: implement me!
-        self.page_size = 2048
 
+    def __parse_dfu_descriptor(self, dfu_desc):
+        """ Parse device information from the DFU functional descriptor """
+        if dfu_desc[0] != 9 or dfu_desc[1] != self.DFU_DESCRIPTOR_TYPE:
+            raise IOError("Error parsing DFU functional descriptor")
+
+        self.attributes    = dfu_desc[2]
+        self.transfer_size = dfu_desc[6] << 8 | dfu_desc[5]
 
 
     def __dfu_out_request(self, request, value, data, timeout=5000):
@@ -220,7 +226,7 @@ class DFUTarget(FwupTarget):
 
         # If we don't have a block number, create one from the address of the page.
         if block_number is None:
-            block_number = address // self.page_size
+            block_number = address // self.transfer_size
 
         # Download the firmware to the device...
         self.last_block_number = block_number
@@ -248,10 +254,10 @@ class DFUTarget(FwupTarget):
     def program(self, program_data, status_callback=None):
         """ Uploads a given program to the target DFU device. """
 
-        for page_address in range(0, len(program_data), self.page_size):
+        for page_address in range(0, len(program_data), self.transfer_size):
 
             # Extract the page to be programmed...
-            data_to_program = bytearray(program_data[page_address : page_address + self.page_size])
+            data_to_program = program_data[page_address : page_address + self.transfer_size]
 
             # ... and download it to the device.
             self.__raw_write_page(page_address, data_to_program)

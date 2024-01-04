@@ -72,11 +72,11 @@ class MicronucleusBoard(FwupTarget):
 
 
 
-    def __init__(self, vid=MICRONUCLEUS_VID, pid=MICRONUCLEUS_PID, wait=True, fast_mode=False):
+    def __init__(self, wait=True, fast_mode=False, *args, **kwargs):
         """ Creates a new connection to a given micronucleus bootloader. """
 
-        self.target_vid = vid
-        self.target_pid = pid
+        self.target_vid = kwargs.get('idVendor', default=MICRONUCLEUS_VID)
+        self.target_pid = kwargs.get('idProduct', default=MICRONUCLEUS_PID)
         self.fast_mode = fast_mode
 
         # Attempt to grab a connection to the device.

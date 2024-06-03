@@ -59,6 +59,7 @@ class DFUTarget(FwupTarget):
 
     # Misc constants.
     DFU_STATUS_LENGTH                  = 6
+    DFU_WILL_DETACH                    = (1 << 3)
 
     # USB standard constants.
     DFU_DEVICE_CLASS                   = 0xFE
@@ -152,22 +153,36 @@ class DFUTarget(FwupTarget):
         # Read the device's download parameters.
         self.__read_device_info()
 
+        # If the device is in runtime mode, send a DFU detach request first.
+        if self.runtime_mode and (self.attributes & self.DFU_WILL_DETACH):
+            try:
+                self.__dfu_out_request(self.DFU_DETACH, self.interface, None)
+            except:
+                pass
+            else:
+                # Disconnect device, wait for reenumeration and start over.
+                usb.util.dispose_resources(self.device)
+                time.sleep(3)
+                self.__init__(index=index, *args, **kwargs)
+
 
     def __read_device_info(self):
         """ Retrieve information from the DFU-capable device. """
         for configuration in self.device:
             intf = usb.util.find_descriptor(configuration, bInterfaceClass=self.DFU_DEVICE_CLASS,
                                             bInterfaceSubClass=self.DFU_DEVICE_SUBCLASS)
-            self.__parse_dfu_descriptor(intf.extra_descriptors)
+            self.runtime_mode = (intf.bInterfaceProtocol == 1)
+            self.__parse_dfu_functional_descriptor(intf.extra_descriptors)
 
 
-    def __parse_dfu_descriptor(self, dfu_desc):
+    def __parse_dfu_functional_descriptor(self, dfu_desc):
         """ Parse device information from the DFU functional descriptor """
         if dfu_desc[0] != 9 or dfu_desc[1] != self.DFU_DESCRIPTOR_TYPE:
             raise IOError("Error parsing DFU functional descriptor")
 
-        self.attributes    = dfu_desc[2]
-        self.transfer_size = dfu_desc[6] << 8 | dfu_desc[5]
+        self.attributes     = dfu_desc[2]
+        self.detach_timeout = dfu_desc[4] << 8 | dfu_desc[3]
+        self.transfer_size  = dfu_desc[6] << 8 | dfu_desc[5]
 
 
     def __dfu_out_request(self, request, value, data, timeout=5000):

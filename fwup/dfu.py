@@ -145,8 +145,12 @@ class DFUTarget(FwupTarget):
 
         # ... and ensure the relevant configuration is active.
         try:
-            self.device.set_configuration(self.configuration)
             self.device.detach_kernel_driver(self.interface)
+        except:
+            pass
+
+        try:
+            self.device.set_configuration(self.configuration)
         except:
             pass
 

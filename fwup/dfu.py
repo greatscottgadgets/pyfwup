@@ -125,7 +125,7 @@ class DFUTarget(FwupTarget):
 
 
 
-    def __init__(self, index=0, *args, **kwargs):
+    def __init__(self, index=0, detach=True, timeout=5000, *args, **kwargs):
         """ Creates a new class representing a DFU target.
 
         Accepts the same specifier arguments as pyusb's usb.core.find(); plus an index argument that gets
@@ -145,8 +145,12 @@ class DFUTarget(FwupTarget):
 
         # ... and ensure the relevant configuration is active.
         try:
-            self.device.set_configuration(self.configuration)
             self.device.detach_kernel_driver(self.interface)
+        except:
+            pass
+
+        try:
+            self.device.set_configuration(self.configuration)
         except:
             pass
 
@@ -154,7 +158,7 @@ class DFUTarget(FwupTarget):
         self.__read_device_info()
 
         # If the device is in runtime mode, send a DFU detach request first.
-        if self.runtime_mode and (self.attributes & self.DFU_WILL_DETACH):
+        if detach and self.runtime_mode and (self.attributes & self.DFU_WILL_DETACH):
             try:
                 self.__dfu_out_request(self.DFU_DETACH, self.interface, None)
             except:
@@ -162,8 +166,18 @@ class DFUTarget(FwupTarget):
             else:
                 # Disconnect device, wait for reenumeration and start over.
                 usb.util.dispose_resources(self.device)
-                time.sleep(3)
-                self.__init__(index=index, *args, **kwargs)
+                start = time.time()
+                while True:
+                    try:
+                        self.__init__(index=index, detach=False, *args, **kwargs)
+                    except BoardNotFoundError:
+                        pass
+                    else:
+                        if not self.runtime_mode:
+                            break
+                    if ((time.time() - start) * 1000) >= timeout:
+                        raise BoardNotFoundError("Device not found after DFU_DETACH.")
+                    time.sleep(0.1)
 
 
     def __read_device_info(self):

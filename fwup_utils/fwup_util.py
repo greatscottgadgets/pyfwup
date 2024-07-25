@@ -6,6 +6,8 @@
 import os
 import sys
 import argparse
+import platform
+import usb, usb.backend.libusb1
 
 from tqdm import tqdm
 
@@ -97,6 +99,21 @@ def main():
         except ValueError:
             log_stderr("Cannot parse the device argument. Please supply a valid vid:pid pair.")
             sys.exit(-4)
+
+    # On Windows we need to specify the libusb library location to create a backend.
+    if platform.system() == "Windows":
+        # Determine the path to libusb-1.0.dll.
+        try:
+            from importlib_resources import files # <= 3.8
+        except:
+            from importlib.resources import files # >= 3.9
+        libusb_dll = os.path.join(files("usb1"), "libusb-1.0.dll")
+
+        # Create a backend by explicitly passing the path to libusb_dll.
+        backend = usb.backend.libusb1.get_backend(find_library=lambda x: libusb_dll)
+    else:
+        # On other systems we can just use the default backend.
+        backend = usb.backend.libusb1.get_backend()
 
     # Figure out which to create based on the binary name.
     try:

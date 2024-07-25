@@ -2,9 +2,6 @@
 Core definitions for pyfwup.
 """
 
-from __future__ import print_function
-
-
 class FwupTarget(object):
     """
     Abstract base class for pyfwup supported boards. Allows use in fwup-util and derivatives.

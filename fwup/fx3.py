@@ -1,8 +1,6 @@
 # This file is part of pyfwup.
 """ Programmer definition for loading images to the Cypress FX3 bootloader. """
 
-from __future__ import print_function
-
 import time
 import struct
 

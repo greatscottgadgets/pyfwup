@@ -35,6 +35,9 @@ class LPC43xxTarget(DFUTarget):
         if 'idProduct' not in kwargs:
             kwargs['idProduct'] = self.PRODUCT_ID
 
+        # NXP's DFU bootloader claims to be in run-time mode but is actually in DFU mode.
+        kwargs['detach'] = False
+
         super(LPC43xxTarget, self).__init__(*args, **kwargs)
 
 

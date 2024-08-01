@@ -35,6 +35,9 @@ class LPC43xxTarget(DFUTarget):
         if 'idProduct' not in kwargs:
             kwargs['idProduct'] = self.PRODUCT_ID
 
+        # NXP's DFU bootloader claims to be in run-time mode but is actually in DFU mode.
+        kwargs['detach'] = False
+
         super(LPC43xxTarget, self).__init__(*args, **kwargs)
 
 
@@ -52,7 +55,7 @@ class LPC43xxTarget(DFUTarget):
         # This math rounds up to the next full block.
         program_size_blocks = (len(program_data) + (self.BLOCK_SIZE - self.HEADER_SIZE - 1)) // 512
 
-        header = struct.pack(">BBH", 0xda, 0xff, program_size_blocks) + (b"\xff" *12)
+        header = struct.pack("<BBH", 0xda, 0xff, program_size_blocks) + (b"\xff" *12)
         program_data[0:0] = header
 
         # And call the main DFU functionality.

@@ -2,8 +2,6 @@
 LPC43xx programming functionality.
 """
 
-from __future__ import print_function
-
 import struct
 
 from .dfu import DFUTarget

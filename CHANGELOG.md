@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 -->
 
+## [0.5.1] - 2024-08-01
+
+### Fixed
+
+- lpc43xx: Do not detach.
+- lpc43xx: Format flash image header in little-endian.
+
+
 ## [0.5.0] - 2024-07-24
 
 ### Added
@@ -29,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release.
 
 
-[Unreleased]: https://github.com/greatscottgadgets/pyfwup/compare/0.5.0...HEAD
+[Unreleased]: https://github.com/greatscottgadgets/pyfwup/compare/0.5.1...HEAD
+[0.5.1]: https://github.com/greatscottgadgets/pyfwup/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/greatscottgadgets/pyfwup/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/greatscottgadgets/pyfwup/releases/tag/0.4.0

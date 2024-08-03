@@ -141,16 +141,27 @@ class DFUTarget(FwupTarget):
         # Determine which configuration and interface expose DFU functionality...
         self.configuration, self.interface = self.__find_dfu_interface_on_device(self.device)
 
-        # ... and ensure the relevant configuration is active.
+        # Detach any kernel driver that has claimed the device. This raises an
+        # exception on Windows. On Linux or macOS it may raise an exception if
+        # no kernel driver is found or the user lacks permission to detach the
+        # driver.
         try:
             self.device.detach_kernel_driver(self.interface)
         except:
             pass
 
+        # Ensure the relevant configuration is active, and reset the device
+        # state. This may raise an exception on Windows.
         try:
             self.device.set_configuration(self.configuration)
         except:
             pass
+
+        # Claim the interface. This is probably necessary only on Windows, but
+        # there is no harm doing it on other platforms. An exception here can
+        # indicate that another application or driver has claimed the interface
+        # (which is a useful thing to know at this point regardless of the OS).
+        usb.util.claim_interface(self.device, self.interface)
 
         # Read the device's download parameters.
         self.__read_device_info()

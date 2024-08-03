@@ -179,7 +179,10 @@ class DFUTarget(FwupTarget):
                 while True:
                     try:
                         self.__init__(index=index, detach=False, *args, **kwargs)
-                    except BoardNotFoundError:
+                    except (BoardNotFoundError, usb.USBError, NotImplementedError):
+                        # Various transient errors are likely on Windows
+                        # shortly after device enumeration of a device that is
+                        # not yet ready.
                         pass
                     else:
                         if not self.runtime_mode:

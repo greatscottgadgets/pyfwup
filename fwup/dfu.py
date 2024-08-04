@@ -145,10 +145,12 @@ class DFUTarget(FwupTarget):
         # exception on Windows. On Linux or macOS it may raise an exception if
         # no kernel driver is found or the user lacks permission to detach the
         # driver.
-        try:
-            self.device.detach_kernel_driver(self.interface)
-        except:
-            pass
+        active_config = self.device.get_active_configuration()
+        for iface in active_config.interfaces():
+            try:
+                self.device.detach_kernel_driver(iface.bInterfaceNumber)
+            except:
+                pass
 
         # Ensure the relevant configuration is active, and reset the device
         # state. This may raise an exception on Windows.

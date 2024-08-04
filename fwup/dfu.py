@@ -176,10 +176,11 @@ class DFUTarget(FwupTarget):
                 pass
             else:
                 # Disconnect device, wait for reenumeration and start over.
-                usb.util.dispose_resources(self.device)
                 start = time.time()
                 while True:
                     try:
+                        usb.util.release_interface(self.device, self.interface)
+                        usb.util.dispose_resources(self.device)
                         self.__init__(index=index, detach=False, *args, **kwargs)
                     except (BoardNotFoundError, usb.USBError, NotImplementedError):
                         # Various transient errors are likely on Windows

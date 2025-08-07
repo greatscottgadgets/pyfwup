@@ -123,7 +123,7 @@ class DFUTarget(FwupTarget):
 
 
 
-    def __init__(self, index=0, detach=True, timeout=5000, *args, **kwargs):
+    def __init__(self, index=0, detach=True, timeout=10000, *args, **kwargs):
         """ Creates a new class representing a DFU target.
 
         Accepts the same specifier arguments as pyusb's usb.core.find(); plus an index argument that gets

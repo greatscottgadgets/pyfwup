@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 -->
 
+## [0.5.3] - 2025-08-27
+
+### Fixed
+
+- Increase default DFUTarget timeout value to address `Device not found after DFU_DETACH` errors.
+
+
 ## [0.5.2] - 2024-08-06
 
 ### Fixed
@@ -47,7 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release.
 
 
-[Unreleased]: https://github.com/greatscottgadgets/pyfwup/compare/0.5.2...HEAD
+[Unreleased]: https://github.com/greatscottgadgets/pyfwup/compare/0.5.3...HEAD
+[0.5.3]: https://github.com/greatscottgadgets/pyfwup/compare/0.5.2...0.5.3
 [0.5.2]: https://github.com/greatscottgadgets/pyfwup/compare/0.5.1...0.5.2
 [0.5.1]: https://github.com/greatscottgadgets/pyfwup/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/greatscottgadgets/pyfwup/compare/0.4.0...0.5.0
